@@ -1,5 +1,3 @@
-// const huffman = require('huffman-simple');
-
 function uploadFile() {
     let fileText = '';
     let file = document.getElementById("file").files[0];
@@ -41,4 +39,3 @@ function getProbabilities(fileText) {
 function addResult(result) {
     document.getElementById('result').innerHTML = JSON.stringify(result);
 }
-// module.exports = huffman;
