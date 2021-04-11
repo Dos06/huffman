@@ -1,78 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 	<meta charset="utf-8">
 	<title>Huffman Encoding</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-	
+
 	<link href="css/bootstrap.min.css" rel="stylesheet">
 	<link href="css/styles.css" rel="stylesheet">
 </head>
+
 <body>
 	<div class="container">
 		<div class="text-center">
-			<h1>Huffman Encoding</h1>
+			<h2>Huffman Encoding</h2>
 			<p class="lead">
-				<div class="row">
-					<div class="col-xs-12" style="padding-bottom: 20px;">
-						<a class="btn btn-success" id="huffman_download">
-							Download
-						</a>
-						<!-- <span class="btn btn-success fileinput-button" id="huffman_upload">
+			<div class="row">
+				<div class="col-xs-12" style="padding-bottom: 20px;">
+					<!-- <a class="btn btn-success" id="huffman_download">
+						Download
+					</a> -->
+					<!-- <span class="btn btn-success fileinput-button" id="huffman_upload">
 							Upload
 							<input type="file" id="huffman_upload_input">
 						</span> -->
-					</div>
 				</div>
-				
-				<div class="row">
-					<div class="col-xs-12 show_error"></div>
+			</div>
+
+			<div class="row">
+				<div class="col-xs-12 show_error"></div>
+			</div>
+
+			<div class="row">
+				<div class="col-xs-12">
+					<form>
+						<div class="form-group">
+							<textarea id="huffman_input" class="form-control" style="width:100%; height:100px;"
+								placeholder="Enter text..."></textarea>
+						</div>
+					</form>
 				</div>
-				
-				<div class="row">
-					<div class="col-xs-6">
-						<form>
-							<div class="form-group">
-								<textarea id="huffman_input" class="form-control" style="width:100%; height:500px;" placeholder="Enter text..."></textarea>
-							</div>
-						</form>
-					</div>
-					
-					<div class="col-xs-6">
-						<div class="box" id="huffman_graph" style="height:500px;">
+
+				<div class="col-xs-6">
+						<div class="box" id="huffman_graph" style="height:500px; display: none;">
 							<i style="line-height:500px;">Enter text to see graph...</i>
 						</div>
 					</div>
-				</div>
-				
-				<div class="row">
-					<div class="col-xs-12">
-						<div class="box" id="huffman_bits" style="margin-top:20px; padding:20px 20px; max-height:500px; overflow-x:hidden; overflow-y:auto;">
-							<i>Enter text to see the result...</i>
-						</div>
+			</div>
+
+			<div class="row">
+				<div class="col-xs-12">
+					<div class="box" id="huffman_bits"
+						style="margin-top:20px; padding:20px 20px; max-height:500px; overflow-x:hidden; overflow-y:auto;">
+						<i>Enter text to see the result...</i>
 					</div>
 				</div>
+			</div>
+			
+			<div class="row">
+				<h2>Huffman Decoding</h2>
+				<div class="col-xs-12">
+					<form>
+						<div class="form-group">
+							<textarea id="decode_input" class="form-control" style="width:100%; height:100px; margin-top: 20px;"
+								placeholder="Enter decode text..."></textarea>
+						</div>
+					</form>
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col-xs-12">
+					<div class="box" id="decode_result"
+						style="margin-top:20px; padding:20px 20px; max-height:500px; overflow-x:hidden; overflow-y:auto;">
+						<i>Enter decode text to see the result...</i>
+					</div>
+				</div>
+			</div>
 			</p>
 		</div>
-	</div>
 
-	<script src="js/libraries/jquery-3.4.1.min.js"></script>
-	<script src="js/libraries/bootstrap.min.js"></script>
-	<script src="js/libraries/jit.js"></script>
-	<script src="js/libraries/binary_tree_visualizer.js"></script>
-	<script src="js/libraries/priority-queue.js"></script>
-	
-	<script src="js/huffman/build_character_nodes.js"></script>
-	<script src="js/huffman/build_tree.js"></script>
-	<script src="js/huffman/build_path.js"></script>
-	<script src="js/huffman/encode_string.js"></script>
-	
-	<script src="js/file/input.js"></script>
-	<script src="js/file/output.js"></script>
-	
-	<script src="js/text/input.js"></script>
-	
-	<script src="js/gui/index.js"></script>
+		<div class="col-sm-12 well">
+			<h1 class="text-center">Huffman Coding</h1>
+			<div class="well">
+				<h3>What are Huffman Codes?</h3>
+				<p>Huffman coding is a lossless data compression algorithm. The idea is to assign variable-length
+					codes to input characters, lengths of the assigned codes are based on the frequencies of
+					corresponding characters. The most frequent character gets the smallest code and the least
+					frequent character gets the largest code.</p>
+				<h4>There are mainly two major parts in Huffman Coding.<br></h4>
+				<p>
+					1) Build a Huffman Tree from input characters.<br>
+					2) Traverse the Huffman Tree and assign codes to characters.</p><br>
+				<h4>Steps to build Huffman Tree</h4>
+				<p><strong>Forward Pass:</strong><br>
+					1.Sort probabilities per symbol in descending order.<br>
+					2.Combine lowest two probabilities.<br>
+					3.Repeat step 2 until only two probabilities remain.<br>
+					4.The last 2 probabilities must have sum=1.0<br>
+				</p>
+				<div class="table-responsive">
+					<table class="table table-condensed table-hover">
+						<thead>
+							<tr>
+								<th>Symbol</th>
+								<th>Probability</th>
+								<th>1</th>
+								<th>2</th>
+								<th>3</th>
+								<th>4</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>a1</td>
+								<td>0.4</td>
+								<td>0.4</td>
+								<td>0.4</td>
+								<td>0.4</td>
+								<td>0.6</td>
+							</tr>
+							<tr>
+								<td>a2</td>
+								<td>0.3</td>
+								<td>0.3</td>
+								<td>0.3</td>
+								<td>0.3</td>
+								<td>0.4</td>
+							</tr>
+							<tr>
+								<td>a3</td>
+								<td>0.1</td>
+								<td>0.1</td>
+								<td>0.2</td>
+								<td>0.3</td>
+							</tr>
+							<tr>
+								<td>a4</td>
+								<td>0.1</td>
+								<td>0.1</td>
+								<td>0.1</td>
+
+							</tr>
+							<tr>
+								<td>a5</td>
+								<td>0.06</td>
+								<td>0.1</td>
+							</tr>
+							<tr>
+								<td>a6</td>
+								<td>0.04</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<p><strong>Backward Pass:</strong><br>
+					1.Assign Binary code (0,1) to last two values in your preferred order.<br>
+					2.Gather bits going backward and form a code.<br>
+					4.Note that code down.<br></p>
+				<div class="table-responsive">
+					<table class="table table-condensed table-hover">
+						<thead>
+							<tr>
+								<th>Symbol</th>
+								<th>Probability</th>
+								<th>Code</th>
+								<th>1</th>
+								<th>2</th>
+								<th>3</th>
+								<th>4</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>a1</td>
+								<td>0.4</td>
+								<td>1</td>
+								<td>0.4</td>
+								<td>0.4</td>
+								<td>0.4</td>
+								<td>0.6</td>
+							</tr>
+							<tr>
+								<td>a2</td>
+								<td>0.3</td>
+								<td>00</td>
+								<td>0.3</td>
+								<td>0.3</td>
+								<td>0.3</td>
+								<td>0.4</td>
+							</tr>
+							<tr>
+								<td>a3</td>
+								<td>0.1</td>
+								<td>011</td>
+								<td>0.1</td>
+								<td>0.2</td>
+								<td>0.3</td>
+							</tr>
+							<tr>
+								<td>a4</td>
+								<td>0.1</td>
+								<td>0100</td>
+								<td>0.1</td>
+								<td>0.1</td>
+
+							</tr>
+							<tr>
+								<td>a5</td>
+								<td>0.06</td>
+								<td>01010</td>
+								<td>0.1</td>
+							</tr>
+							<tr>
+								<td>a6</td>
+								<td>0.04</td>
+								<td>01011</td>
+
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<p id="end" style="font-size: 18px;">The Codes generated in such a way are all unique.This is how
+					Huffman Coding makes sure that there is no ambiguity when decoding the generated bit stream.</p>
+			</div>
+
+			<script src="js/libraries/jquery-3.4.1.min.js"></script>
+			<script src="js/libraries/bootstrap.min.js"></script>
+			<script src="js/libraries/jit.js"></script>
+			<script src="js/libraries/binary_tree_visualizer.js"></script>
+			<script src="js/libraries/priority-queue.js"></script>
+
+			<script src="js/huffman/build_character_nodes.js"></script>
+			<script src="js/huffman/build_tree.js"></script>
+			<script src="js/huffman/build_path.js"></script>
+			<script src="js/huffman/encode_string.js"></script>
+
+			<script src="js/file/input.js"></script>
+			<script src="js/file/output.js"></script>
+
+			<script src="js/text/input.js"></script>
+
+			<script src="js/gui/index.js"></script>
 </body>
+
 </html>
