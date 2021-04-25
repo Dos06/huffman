@@ -1,10 +1,7 @@
 function build_file_output(paths, content_bytes, pad_count){
 	var json = JSON.stringify(paths);
-	console.log("PATH "+paths);
 	json = json.replace(/"/g, "");
-	console.log("json "+json);
 	json = json.substring(1, json.length - 1);
-	console.log("json "+json);
 	
 	var byte_array = new Uint8Array(5 + json.length + content_bytes.length);
 	intToByteArray(json.length, byte_array);

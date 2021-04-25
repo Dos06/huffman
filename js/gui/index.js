@@ -1,3 +1,24 @@
+function getProbabilities(text) {
+	let dict = new Object();
+
+	for (let i = 0; i < text.length; i++) {
+		let key = text.charAt(i);
+		if (!(key in dict)) {
+			dict[key] = 1;
+		} else {
+			let value = dict[key];
+			dict[key] = value + 1;
+		}
+	}
+
+	for (let key in dict) {
+		let value = dict[key];
+		dict[key] = Math.round((value / text.length) * Math.pow(10, 2)) / Math.pow(10, 2);
+
+	}
+	return dict;
+}
+
 var timeout_to_show;
 
 String.prototype.paddingLeft = function (paddingValue) {
@@ -15,16 +36,116 @@ $(document).ready(function () {
 		if (input != "")
 			var result = interpret_text(input);
 
+		let huffman_probabilities = getProbabilities(input);
+		$("#huffman_probabilities").html(JSON.stringify(huffman_probabilities));
+
 		update_gui_elements(result);
+
+
+		let arr = ResultHamming();
+		$("#huffman_bits_with_errors").html(arr);
+		let final_arr = DecodeHamming(arr);
 	});
 });
+
+function ResultHamming() {
+	var huffman_input = document.getElementById('huffman_input').value;
+	var huff = new HuffmanEncoding(huffman_input);
+	var e = huff.encoded_string;
+
+	let arr = [];
+
+	if (e.length % 4 !== 0) {
+		for (let i = 0; i < e.length % 4; i++) {
+			e += "0";
+		}
+	}
+
+	for (let i = 0, j = 0; i < e.length; i += 4, j++) {
+		arr[j] = e.substring(i, i + 4);
+	}
+
+	for (let i = 0; i < arr.length; i++) {
+		arr[i] = EncodeHamming(arr[i]);
+	}
+
+	arr = AddError(arr);
+	return arr;
+}
+
+function DecodeHamming(arr) {
+	const syndromes = {
+		'001': 6,
+		'010': 5,
+		'011': 3,
+		'100': 4,
+		'101': 0,
+		'110': 2,
+		'111': 1,
+	};
+	console.log(arr)
+
+	for (let i = 0; i < arr.length; i++) {
+		console.log(i);
+		let s = getSFromBits(arr[i]);
+		let index = syndromes[s];
+		if (index !== null) {
+			arr[i].charAt(index) === '0' ? '1' : '0';
+		}
+	}
+	return arr;
+}
+
+function getSFromBits(bits) {
+	let i1 = parseInt(bits.charAt(0));
+	let i2 = parseInt(bits.charAt(1));
+	let i3 = parseInt(bits.charAt(2));
+	let i4 = parseInt(bits.charAt(3));
+
+	let r1 = parseInt(bits.charAt(4));
+	let r2 = parseInt(bits.charAt(5));
+	let r3 = parseInt(bits.charAt(6));
+
+	let S1 = r1 ^ i1 ^ i2 ^ i3;
+	let S2 = r2 ^ i2 ^ i3 ^ i4;
+	let S3 = r3 ^ i1 ^ i2 ^ i4;
+
+	let S = S1.toString() + S2.toString() + S3.toString();
+
+	console.log('S', S);
+	return S;
+}
+
+function AddError(arr) {
+	for (let i = 0; i < arr.length; i++) {
+		var randomIndex = Math.floor(Math.random() * 7);
+		let error = arr[i].charAt(randomIndex) == "1" ? "0" : "1";
+		let kek = arr[i].substring(0, randomIndex) + error + arr[i].substring(randomIndex + 1, 8);
+		arr[i] = kek;
+	}
+	return arr;
+}
+
+function EncodeHamming(input) {
+	var i1 = parseInt(input.charAt(0));
+	var i2 = parseInt(input.charAt(1));
+	var i3 = parseInt(input.charAt(2));
+	var i4 = parseInt(input.charAt(3));
+
+	console.log("i", i1, i2, i3, i4);
+
+	var r1 = i1 ^ i2 ^ i3;
+	var r2 = i2 ^ i3 ^ i4;
+	var r3 = i1 ^ i2 ^ i4;
+
+	return input + r1 + r2 + r3;
+}
 
 $(document).ready(function () {
 	$("#decode_input").keyup(function () {
 		var input = $("#decode_input").val();
 
 		var huffman_input = document.getElementById('huffman_input').value;
-		console.log(huffman_input);
 		var huff = new HuffmanEncoding(huffman_input);
 		var e = huff.encoded_string;
 		console.log("encoded " + e);
@@ -32,7 +153,6 @@ $(document).ready(function () {
 		console.log(t);
 
 		var result = t;
-		// document.getElementById('decode_result').value = result;
 		$("#decode_result").html(result);
 
 		// if (input != "")
@@ -141,7 +261,7 @@ function update_huffman_bits(bit_string) {
 	if (bit_string !== undefined && bit_string != "") {
 		$("#huffman_bits").html(bit_string);
 	} else {
-		$("#huffman_bits").html("<i>Type to see bits, or <span>drop encoded file here</span>...</i>");
+		$("#huffman_bits").html("<i>Enter text to see the result...</i>");
 	}
 }
 
@@ -161,19 +281,13 @@ function BinaryHeap(scoreFunction) {
 
 BinaryHeap.prototype = {
 	push: function (element) {
-		// Add the new element to the end of the array.
 		this.content.push(element);
-		// Allow it to bubble up.
 		this.bubbleUp(this.content.length - 1);
 	},
 
 	pop: function () {
-		// Store the first element so we can return it later.
 		var result = this.content[0];
-		// Get the element at the end of the array.
 		var end = this.content.pop();
-		// If there are any elements left, put the end element at the
-		// start, and let it sink down.
 		if (this.content.length > 0) {
 			this.content[0] = end;
 			this.sinkDown(0);
@@ -183,18 +297,10 @@ BinaryHeap.prototype = {
 
 	remove: function (node) {
 		var length = this.content.length;
-		// To remove a value, we must search through the array to find
-		// it.
 		for (var i = 0; i < length; i++) {
 			if (this.content[i] != node) continue;
-			// When it is found, the process seen in 'pop' is repeated
-			// to fill up the hole.
 			var end = this.content.pop();
-			// If the element we popped was the one we needed to remove,
-			// we're done.
 			if (i == length - 1) break;
-			// Otherwise, we replace the removed element with the popped
-			// one, and allow it to float up or sink down as appropriate.
 			this.content[i] = end;
 			this.bubbleUp(i);
 			this.sinkDown(i);
@@ -207,21 +313,14 @@ BinaryHeap.prototype = {
 	},
 
 	bubbleUp: function (n) {
-		// Fetch the element that has to be moved.
 		var element = this.content[n],
 			score = this.scoreFunction(element);
-		// When at 0, an element can not go up any further.
 		while (n > 0) {
-			// Compute the parent element's index, and fetch it.
 			var parentN = Math.floor((n + 1) / 2) - 1,
 				parent = this.content[parentN];
-			// If the parent has a lesser score, things are in order and we
-			// are done.
 			if (score >= this.scoreFunction(parent))
 				break;
 
-			// Otherwise, swap the parent with the current element and
-			// continue.
 			this.content[parentN] = element;
 			this.content[n] = parent;
 			n = parentN;
@@ -229,28 +328,25 @@ BinaryHeap.prototype = {
 	},
 
 	sinkDown: function (n) {
-		// Look up the target element and its score.
 		var length = this.content.length,
 			element = this.content[n],
 			elemScore = this.scoreFunction(element);
 
 		while (true) {
-			// Compute the indices of the child elements.
+
 			var child2N = (n + 1) * 2,
 				child1N = child2N - 1;
-			// This is used to store the new position of the element,
-			// if any.
 			var swap = null;
-			// If the first child exists (is inside the array)...
+
 			if (child1N < length) {
-				// Look it up and compute its score.
+
 				var child1 = this.content[child1N],
 					child1Score = this.scoreFunction(child1);
-				// If the score is less than our element's, we need to swap.
+
 				if (child1Score < elemScore)
 					swap = child1N;
 			}
-			// Do the same checks for the other child.
+
 			if (child2N < length) {
 				var child2 = this.content[child2N],
 					child2Score = this.scoreFunction(child2);
@@ -258,10 +354,10 @@ BinaryHeap.prototype = {
 					swap = child2N;
 			}
 
-			// No need to swap further, we are done.
+
 			if (swap == null) break;
 
-			// Otherwise, swap and continue.
+
 			this.content[n] = this.content[swap];
 			this.content[swap] = element;
 			n = swap;
@@ -335,44 +431,3 @@ HuffmanEncoding.prototype.decode = function (encoded) {
 	}
 	return decoded;
 }
-
-// function decode(encoded) {
-//     var rev_enc = {};
-//     for (var ch in this.encoding) 
-//         rev_enc[this.encoding[ch]] = ch;
-
-//     var decoded = "";
-//     var pos = 0;
-//     while (pos < encoded.length) {
-//         var key = ""
-//         while (!(key in rev_enc)) {
-//             key += encoded[pos];
-//             pos++;
-//         }
-//         decoded += rev_enc[key];
-//     }
-//     return decoded;
-// }
-//------------------------------------------------------------
-// function update_huffman_compression(percentage){
-// 	// Handle undefined
-// 	if(percentage === undefined){
-// 		$("#huffman_compression_bar").css("width", "0%");
-// 		$("#huffman_compression").attr("data-original-title", "0%");
-// 		return;
-// 	}
-
-
-// Format bar
-// $("#huffman_compression_bar").css("width", Math.abs(percentage)+"%");
-
-// if(percentage < 0){
-// 	$("#huffman_compression_bar").removeClass("progress-bar-danger");
-// 	$("#huffman_compression_bar").addClass("progress-bar-danger");
-// }
-// else{
-// 	$("#huffman_compression_bar").removeClass("progress-bar-danger");
-// }
-
-// $("#huffman_compression").attr("data-original-title", Math.round(percentage, 1)+"%");
-// }
